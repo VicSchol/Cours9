@@ -1,0 +1,34 @@
+# Environnements virtuels
+venv/
+.env
+
+# Fichiers Python inutiles
+__pycache__/
+*.pyc
+*.pyo
+
+# Données générées
+*.pkl
+*.index
+*.feather
+*.jsonl
+
+# Dossier tests (optionnel si tu ne veux pas embarquer les tests dans Docker)
+tests/
+
+# Dossiers spécifiques Python
+*.egg-info/
+.build/
+dist/
+
+# Fichiers système / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log

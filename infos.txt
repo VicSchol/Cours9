@@ -1,0 +1,35 @@
+Sélection du modèle
+
+Tu as choisi all-MiniLM-L6-v2 de SentenceTransformers, qui est léger, rapide et adapté à la recherche sémantique.
+
+Tu l’as utilisé pour vectoriser les textes de manière normalisée (cosinus similarity).
+
+Justification implicite : performance (rapide pour 10k+ événements), précision correcte pour du texte court/moyen, compatible avec Faiss.
+
+2️⃣ Adaptation aux exigences métier
+
+Tu as intégré les descriptions d’événements enrichies : titre, description, longue description, OCR, dates, géolocalisation, âge → concaténés pour la vectorisation.
+
+Tu as préparé des “prompts” via vectorise_text pour que le modèle encode toutes les informations métier pertinentes.
+
+3️⃣ Transformation en vecteurs sémantiques
+
+Chaque événement est transformé en embeddings via model.encode(..., normalize_embeddings=True).
+
+Tu as également découpé les textes longs en chunks pour garantir que les vecteurs reflètent bien chaque partie de l’information.
+
+4️⃣ Intégration dans une chaîne LangChain + Faiss
+
+Tu as créé un index Faiss (IndexFlatIP) pour la recherche rapide par similarité cosinus.
+
+Les métadonnées sont associées à chaque chunk pour récupérer les informations complètes lors des requêtes.
+
+Tu as prévu un chatbot qui interroge l’index et récupère les événements les plus proches.
+
+5️⃣ Production de réponses cohérentes
+
+Le pipeline complet permet de renvoyer une réponse structurée, avec titre, date, lieu et description.
+
+Tu as testé via API /ask avec des questions simulées et vérifié la cohérence (tests unitaires + logs).
+
+Les indicateurs de performance (score de similarité, taux de réponse correcte) montrent que les réponses sont pertinentes.
