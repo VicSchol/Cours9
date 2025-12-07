@@ -17,8 +17,6 @@ WORKDIR /app
 # Clean requirements
 COPY requirements.txt .
 RUN sed -i '/pywin32/d' requirements.txt
-RUN sed -i '/tesseract/d' requirements.txt
-RUN sed -i '/faiss-cpu/d' requirements.txt
 
 # Install CPU torch
 RUN pip install --upgrade pip \
