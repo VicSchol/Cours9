@@ -1,11 +1,9 @@
-# 🏗️ STAGE 1: THE BUILDER (Installs all heavy dependencies)
-FROM python:3.11-slim AS builder
+# STAGE 1: BUILDER
+FROM python:3.11-bookworm AS builder
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies needed for building packages (e.g., tesseract, numpy)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libtesseract-dev \
@@ -16,29 +14,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy and prepare requirements.txt
+# Clean requirements
 COPY requirements.txt .
 RUN sed -i '/pywin32/d' requirements.txt
+RUN sed -i '/tesseract/d' requirements.txt
+RUN sed -i '/faiss-cpu/d' requirements.txt
 
-# INSTALL PYTHON DEPENDENCIES
-# This is where the heavy space usage occurs. It runs in the 'builder' stage.
+# Install CPU torch
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir torch==2.2.2+cpu torchvision==0.17.2+cpu \
+       --extra-index-url https://download.pytorch.org/whl/cpu
 
+# Install remaining deps
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 🚀 STAGE 2: THE FINAL RUNTIME IMAGE (The one that will be deployed)
+# STAGE 2: FINAL IMAGE
 FROM python:3.11-slim
 
-# Install ONLY the necessary system dependencies for running the application
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libtesseract-dev \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the installed Python packages from the 'builder' stage
 WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY . .
 
-# Final command
 CMD ["python", "api/main.py"]
