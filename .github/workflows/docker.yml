@@ -32,6 +32,31 @@ jobs:
             echo "No tests folder found, skipping."
           fi
 
-      - name: Build Docker image
+      ###############################################
+      # 🧹 CLEANUP DOCKER BEFORE BUILDING THE IMAGE
+      ###############################################
+      - name: Free disk space (Docker & system)
         run: |
-          docker build -t mon-projet .
+          echo "Disk space BEFORE cleanup:"
+          df -h
+
+          # Remove unused Docker data
+          docker system prune -af --volumes || true
+
+          # Remove large unnecessary system files
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+
+          # Clean apt cache
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+          echo "Disk space AFTER cleanup:"
+          df -h
+
+      ###############################################
+      # 🏗️ BUILD DOCKER IMAGE
+      ###############################################
+      - name: Build Docker image
+        run: docker build -t mon-projet .
