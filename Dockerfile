@@ -1,23 +1,31 @@
-# 1. Image Python légère
+# 1️⃣ Image Python légère
 FROM python:3.11-slim
 
-# 2. Empêcher Python d'écrire les .pyc sur le conteneur
+# 2️⃣ Variables d'environnement Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# 3. Installer quelques dépendances système
-RUN apt-get update && apt-get install -y \
-    build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# 3️⃣ Installer les dépendances système nécessaires
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libtesseract-dev \
+    tesseract-ocr \
+    pkg-config \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# 4. Créer un dossier dans le conteneur
+# 4️⃣ Créer le dossier de travail
 WORKDIR /app
 
-# 5. Copier les fichiers du projet
+# 5️⃣ Copier uniquement le fichier requirements pour profiter du cache Docker
+COPY requirements.txt /app/
+
+# 6️⃣ Installer les dépendances Python
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# 7️⃣ Copier le reste du projet
 COPY . /app
 
-# 6. Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 7. Commande par défaut : lancer ton API
+# 8️⃣ Commande par défaut
 CMD ["python", "api/main.py"]
