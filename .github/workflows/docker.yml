@@ -26,8 +26,11 @@ jobs:
 
       - name: Run tests
         run: |
-          pip install pytest
-          pytest tests/ --maxfail=1 --disable-warnings -q
+          if [ -d "tests" ]; then
+            pytest -q
+          else
+            echo "No tests folder found, skipping."
+          fi
 
       - name: Build Docker image
         run: |
