@@ -32,47 +32,28 @@ Le projet suit une structure modulaire :
 ## Pipeline RAG – Diagramme UML
 
 Pipeline RAG – Reconnaissance de Texte et LLM
-+------------------------------------+
-| Base de données : événements Lyon  |
-+------------------------------------+
+[Base de données : événements Lyon]
                  |
                  v
-+------------------------------------+
-| Transformation en texte exploitable|
-|        (OCR / conversion texte)    |
-+------------------------------------+
+[OCR / Conversion en texte exploitable]
                  |
                  v
-+------------------------------------+
-|             Embeddings             |
-+------------------------------------+
+[Embeddings]
                  |
                  v
-+------------------------------------+
-|              Chunking              |
-+------------------------------------+
+[Chunking]
                  |
                  v
-+------------------------------------+
-|            Vectorisation           |
-+------------------------------------+
+[Vectorisation]
                  |
                  v
-+------------------------------------+
-|  Base de données avec indexation  |
-|              Faiss                 |
-+------------------------------------+
+[DB avec indexation Faiss]
                  |
                  v
-+------------------------------------+
-| RAG : recherche par similarité     |
-|           vectorielle              |
-+------------------------------------+
+[RAG : recherche par similarité]
                  |
                  v
-+------------------------------------+
-| Réponse structurée (Mistral V1)   |
-+------------------------------------+
+[Réponse structurée (Mistral V1)]
 
 
 
