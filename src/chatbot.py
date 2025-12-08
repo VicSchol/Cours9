@@ -84,18 +84,17 @@ def chatbot_ask(question, top_k=TOP_K):
 
     # 1. Obtenir la date d'aujourd'hui
     today_date = datetime.now()
-    today_str = today_date.strftime("%d %B %Y") # Format Jours Mois Année (ex: 05 Décembre 2025)
-    current_month_name = today_date.strftime("%B") # Nom du mois (ex: Décembre)
-    current_year = today_date.strftime("%Y") # Année (ex: 2025)
+    today_str = today_date.strftime("%d %B %Y")  # ex: 05 Décembre 2025
+    current_month_name = today_date.strftime("%B")
+    current_year = today_date.strftime("%Y")
 
     # Détection des références vagues
     vague_refs = ["cet événement", "cet atelier", "cette activité", "plus de détails"]
-    
-    # ... (le reste du bloc de récupération est inchangé)
+
+    # 2. Recherche vectorielle
     if any(ref in question.lower() for ref in vague_refs) and last_event:
         retrieved_chunks = [last_event]
     else:
-        # Vectorisation de la question
         q_vec = model.encode(question, normalize_embeddings=True).astype('float32')
         D, I = index.search(np.array([q_vec]), top_k)
         retrieved_chunks = [metadatas[i] for i in I[0]]
@@ -104,34 +103,43 @@ def chatbot_ask(question, top_k=TOP_K):
     if retrieved_chunks:
         last_event = retrieved_chunks[0]
 
-    # 2. Construction du prompt conversationnel (AVEC CONTEXTE TEMPOREL)
+    # 3. Construire le prompt
     prompt = "Tu es un assistant sympathique et humain spécialisé dans les événements de Lyon.\n"
     prompt += f"La date d'aujourd'hui est le **{today_str}**.\n"
-    prompt += f"Le mois actuel est **{current_month_name} {current_year}**.\n" # Indiquer clairement le mois
-    
-    # Instructions claires de filtrage pour le LLM
+    prompt += f"Le mois actuel est **{current_month_name} {current_year}**.\n"
     prompt += "Ta mission est de répondre à la question de l'utilisateur en français en utilisant UNIQUEMENT les informations ci-dessous.\n"
-    prompt += "Si la question porte sur 'ce mois-ci', tu dois filtrer la réponse pour ne mentionner que les événements du mois de **" + current_month_name + "**.\n"
     prompt += "Voici les événements pertinents récupérés par la recherche vectorielle :\n"
-    
+
+    context_texts = []
     for m in retrieved_chunks:
-        prompt += f"- **{m.get('title', 'Titre inconnu')}** ({m.get('dates_text', 'dates inconnues')}, {m.get('geo_text', 'lieu inconnu')}). Description : {m.get('vectorise_text', '')}\n"
-        
+        title = m.get("title", "Titre inconnu")
+        dates = m.get("dates_text", "dates inconnues")
+        geo = m.get("geo_text", "lieu inconnu")
+        vector_text = m.get("vectorise_text", "")
+        prompt += f"- **{title}** ({dates}, {geo}). Description : {vector_text}\n"
+
+        # On construit context_texts avec plusieurs champs pour plus de chance de récupérer du texte
+        full_text = m.get("full_vectorise_text") or m.get("vectorise_text") or m.get("context_chunk") or ""
+        if full_text.strip():
+            context_texts.append(full_text.strip())
+
+    # Si aucun contexte trouvé, ajouter au moins le titre + dates pour ne pas renvoyer vide
+    if not context_texts:
+        for m in retrieved_chunks:
+            context_texts.append(f"{m.get('title', 'Titre inconnu')} ({m.get('dates_text', 'dates inconnues')})")
+
     prompt += f"\nQuestion de l'utilisateur : {question}\nRéponse :"
 
-    # Appel à Mistral pour générer la réponse
+    # 4. Appel à Mistral
     response = llm(prompt)
 
-    # Affichage des sources utilisées
+    # 5. Affichage des sources utilisées
     print("\n--- Sources utilisées ---")
-    # Créer la liste des textes de contexte réels (full_vectorise_text)
-    context_texts = [m.get('full_vectorise_text', m.get('context_chunk', '')) for m in retrieved_chunks]
-    
-    for m in retrieved_chunks:
-        print(f"- {m.get('title', '')} | {m.get('dates_text', '')}")
+    for text in context_texts:
+        print(f"- {text[:150]}{'...' if len(text) > 150 else ''}")
 
-    # Rendre à la fois la réponse ET le contexte utilisé
-    return response, context_texts # <-- Nouvelle ligne
+    return response, context_texts
+
 
 # --------------------------- INTERACTION ---------------------------
 if __name__ == "__main__":
