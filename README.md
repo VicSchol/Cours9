@@ -29,18 +29,33 @@ Le projet suit une structure modulaire :
 
 ---
 
-## Pipeline RAG – Diagramme Mermaid
+## Pipeline RAG – Diagramme UML
 
-```mermaid
-flowchart LR
-    A["Base de données: événements à Lyon"] --> B["Transfo en texte exploitable (OCR / conversion en texte)"]
-    B --> C["Embeddings"]
-    C --> D["Chunking"]
-    D --> E["Vectorisation"]
-    E --> F["DB avec indexation Faiss"]
-    F --> G["RAG: recherche par similarité vectorielle"]
-    G --> H["Réponse structurée (Mistral V1)"]
----
+Pipeline RAG – Reconnaissance de Texte et LLM
+
+1. Base de données : événements à Lyon
+      |
+      v
+2. Transformation en texte exploitable (OCR / conversion en texte)
+      |
+      v
+3. Embeddings
+      |
+      v
+4. Chunking (découpage en morceaux)
+      |
+      v
+5. Vectorisation
+      |
+      v
+6. Base de données avec indexation Faiss
+      |
+      v
+7. RAG : recherche par similarité vectorielle
+      |
+      v
+8. Réponse structurée (Mistral V1)
+
 
 ## ⚙️ Démarrage Local (sans Docker)
 
