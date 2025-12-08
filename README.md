@@ -33,14 +33,13 @@ Le projet suit une structure modulaire :
 
 ```mermaid
 flowchart LR
-    A[Base de données<br>Source : événements à Lyon] --> B[Transfo en texte exploitable<br>(OCR / conversion en texte)]
+    A[Base de données: événements à Lyon] --> B[Transfo en texte exploitable (OCR / conversion en texte)]
     B --> C[Embeddings]
     C --> D[Chunking]
     D --> E[Vectorisation]
     E --> F[DB avec indexation Faiss]
-    F --> G[RAG, recherche par similarité vectorielle]
+    F --> G[RAG: recherche par similarité vectorielle]
     G --> H[Réponse structurée (Mistral V1)]
-
 ---
 
 ## ⚙️ Démarrage Local (sans Docker)
