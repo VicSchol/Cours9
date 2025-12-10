@@ -5,10 +5,10 @@ FROM python:3.11-bookworm AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src
 
-# Installer les dépendances système nécessaires pour Torch, FAISS, OCR, Tesseract
+# Installer dépendances système nécessaires pour OCR/Tesseract
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     libtesseract-dev \
     tesseract-ocr \
     pkg-config \
@@ -26,17 +26,11 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir torch==2.2.2+cpu torchvision==0.17.2+cpu \
        --extra-index-url https://download.pytorch.org/whl/cpu
 
-# Installer le reste des dépendances
+# Installer les autres dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
-# -------------------------------
-# Build index vectoriel pendant le build
-# -------------------------------
-# Copier le projet entier
+# Copier tout le projet (y compris db avec index et metadatas)
 COPY . .
-
-# Exécuter le script qui construit preprocessing, vectorisation et FAISS
-RUN python scripts/build_all.py
 
 # -------------------------------
 # STAGE 2: FINAL IMAGE
@@ -54,7 +48,7 @@ WORKDIR /app
 # Copier les packages Python depuis le builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-# Copier tout le projet + index FAISS déjà construit
+# Copier tout le projet + index FAISS déjà existant
 COPY --from=builder /app /app
 
 EXPOSE 8080
