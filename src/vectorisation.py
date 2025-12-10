@@ -56,26 +56,6 @@ print(df.head())
 if "vectorise_text" not in df.columns:
     raise ValueError("La colonne 'vectorise_text' est manquante. Impossible de vectoriser.")
 
-# # %% --------------------------- 3. INITIALISATION DU MODELE ---------------------------
-# print(f"\nChargement du modèle d'embedding : {MODEL_NAME}...")
-# model = SentenceTransformer(MODEL_NAME)
-# print("✅ Modèle chargé.")
-
-# # %% --------------------------- 4. VECTORISATION ---------------------------
-# texts = df["vectorise_text"].tolist()
-# print(f"\nVectorisation de {len(texts)} textes...")
-
-# embeddings = model.encode(
-#     texts,
-#     batch_size=BATCH_SIZE,
-#     show_progress_bar=True,
-#     normalize_embeddings=True
-# )
-
-# # Ajout des embeddings au DataFrame
-# df["embedding"] = [vec.tolist() for vec in embeddings]
-# print("✅ Vectorisation terminée.")
-
 # %% --------------------------- 3. ENREGISTREMENT ---------------------------
 try:
     df.to_json(
@@ -84,6 +64,6 @@ try:
         lines=True,
         force_ascii=False  # conserver les accents
     )
-    print(f"✅ DataFrame vectorisé sauvegardé : {OUTPUT_FILENAME_VECTOR}")
+    print(f"✅ Json vectorisé sauvegardé : {OUTPUT_FILENAME_VECTOR}")
 except Exception as e:
     print(f"⚠️ Erreur sauvegarde : {e}")
