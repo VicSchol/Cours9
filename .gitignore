@@ -1,0 +1,32 @@
+# Environnements virtuels
+venv/
+.env
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Données lourdes ou temporaires
+*.pkl
+*.index
+*.feather
+*.jsonl
+
+# Logs
+*.log
+
+# IDE / éditeur
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+
+*.pptx
