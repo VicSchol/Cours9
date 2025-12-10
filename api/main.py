@@ -1,9 +1,30 @@
 import os
 import sys
 from pathlib import Path
+
+RUNNING_TESTS = "PYTEST_CURRENT_TEST" in os.environ
+# --------------------------------------------------------------------
+# Configuration
+# --------------------------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR / "src"))
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-import faiss
+if not RUNNING_TESTS:
+    import faiss
+    from chatbot import chatbot_ask, index, metadatas
+else:
+    # mocks légers pour les tests
+    class FakeFaiss:
+        pass
+    faiss = FakeFaiss()
+
+    def chatbot_ask(question):
+        return "Réponse mock", []
+    
+    index = None
+    metadatas = []
 import pickle
 import logging
 import subprocess
@@ -11,13 +32,7 @@ import time
 import webbrowser
 from threading import Thread
 
-# --------------------------------------------------------------------
-# Configuration
-# --------------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR / "src"))
 
-from chatbot import chatbot_ask, index, metadatas  # Import du chatbot existant
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
