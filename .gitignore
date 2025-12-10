@@ -19,9 +19,6 @@ dist/
 *.feather
 *.jsonl
 
-# Tests (optionnel si tu ne veux pas suivre ces fichiers)
-tests/
-
 # Logs
 *.log
 
