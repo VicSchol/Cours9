@@ -19,6 +19,9 @@ dist/
 *.feather
 *.jsonl
 
+# Tests (optionnel si tu ne veux pas suivre ces fichiers)
+tests/
+
 # Logs
 *.log
 
@@ -27,6 +30,5 @@ dist/
 .idea/
 *.swp
 .DS_Store
-
 
 *.pptx
