@@ -27,8 +27,7 @@ jobs:
       - name: Run tests
         run: |
           if [ -d "tests" ]; then
-            # Exclut test_api.py qui touche FAISS
-            pytest -k "not test_api" -q
+            pytest -q --ignore=tests/test_api.py
           else
             echo "No tests folder found, skipping."
           fi
