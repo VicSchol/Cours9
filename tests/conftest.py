@@ -56,3 +56,26 @@ mock_vect.load_model.return_value = "mock_model"
 mock_vect.vectorise_text.return_value = [0.2] * 384
 mock_vect.ocr_image.return_value = "fake ocr"
 sys.modules["vectorisation"] = mock_vect
+
+import pytest
+import pandas as pd
+from datetime import datetime, timedelta
+
+@pytest.fixture
+def sample_raw_df():
+    """Fixture de dataframe minimal pour les tests preprocessing"""
+    return pd.DataFrame({
+        "uid": ["EV1", "EV2"],
+        "title_fr": ["Super événement", "Autre événement"],
+        "description_fr": ["Desc 1", "Desc 2"],
+        "longdescription_fr": ["Long desc 1", "Long desc 2"],
+        "date_start": [datetime.now().isoformat(), (datetime.now() - timedelta(days=10)).isoformat()],
+        "firstdate_begin": [datetime.now().isoformat(), (datetime.now() - timedelta(days=10)).isoformat()],
+        "firstdate_end": [datetime.now().isoformat(), (datetime.now() - timedelta(days=5)).isoformat()],
+        "lastdate_begin": [datetime.now().isoformat(), (datetime.now() - timedelta(days=2)).isoformat()],
+        "lastdate_end": [datetime.now().isoformat(), datetime.now().isoformat()],
+        "location_coordinates": ["45.7500,4.8500", "45.7600,4.8600"],
+        "image": ["http://fakeurl.com/img1.png", "http://fakeurl.com/img2.png"],
+        "age_min": [10, 5],
+        "age_max": [99, 12],
+    })
