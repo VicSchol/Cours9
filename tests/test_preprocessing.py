@@ -94,16 +94,22 @@ def test_coordinate_split(sample_raw_df):
     assert lon == 4.8500
 
 # ---------------- TEST OCR MOCK ---------------- #
-def test_ocr_mock(sample_raw_df):
-    logger.info("Test OCR démarré (mock)")
-    df = sample_raw_df.copy()
-    
-    class MockReader:
-        def readtext(self, img, detail=0):
-            return ["Texte OCR"]
+# ---------------- TEST OCR MOCK ---------------- #
+from unittest.mock import patch, MagicMock
 
-    text = prep.ocr_image(df["image"].iloc[0], reader_instance=MockReader())
+@patch("src.preprocessing.easyocr.Reader")
+def test_ocr_mock(mock_easyocr_reader, sample_raw_df):
+    logger.info("Test OCR démarré (mock)")
+
+    # Mock du reader pour qu'il retourne "Texte OCR"
+    mock_reader_instance = MagicMock()
+    mock_reader_instance.readtext.return_value = ["Texte OCR"]
+    mock_easyocr_reader.return_value = mock_reader_instance
+
+    df = sample_raw_df.copy()
+    text = prep.ocr_image(df["image"].iloc[0])
     logger.info("Résultat OCR mock: %s", text)
+
     assert text == "Texte OCR"
 
 # ---------------- TEST VECTORIZATION TEXT ---------------- #
