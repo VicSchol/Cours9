@@ -1,9 +1,10 @@
+# tests/test_preprocessing.py
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pytest
 import pandas as pd
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 import logging
 
@@ -13,6 +14,26 @@ import src.preprocessing as prep
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+# ---------------- FIXTURE SAMPLE DATAFRAME ---------------- #
+@pytest.fixture
+def sample_raw_df():
+    """DataFrame simulant des événements pour les tests."""
+    return pd.DataFrame({
+        "uid": ["EV1", "EV2"],
+        "title_fr": ["Super événement", "Autre événement"],
+        "description_fr": ["Desc 1", "Desc 2"],
+        "longdescription_fr": ["Long Desc 1", "Long Desc 2"],
+        "date_start": [datetime.now().isoformat(), (datetime.now() - timedelta(days=400)).isoformat()],
+        "firstdate_begin": [datetime.now().isoformat(), (datetime.now() - timedelta(days=400)).isoformat()],
+        "firstdate_end": [datetime.now().isoformat(), (datetime.now() - timedelta(days=400)).isoformat()],
+        "lastdate_begin": [datetime.now().isoformat(), (datetime.now() - timedelta(days=400)).isoformat()],
+        "lastdate_end": [datetime.now().isoformat(), (datetime.now() - timedelta(days=400)).isoformat()],
+        "timings": ["18:00", "20:00"],
+        "location_coordinates": ["45.7500,4.8500", "45.7600,4.8600"],
+        "image": ["http://fake.url/image1.png", "http://fake.url/image2.png"],
+        "age_min": [10, 5],
+        "age_max": [99, 12]
+    })
 
 # ---------------- TEST RENAME ---------------- #
 def test_column_renaming(sample_raw_df):
@@ -24,14 +45,12 @@ def test_column_renaming(sample_raw_df):
         "longdescription_fr": "long_description",
         "date_start": "start_date"
     })
-    
     assert "event_id" in df.columns
     assert "title" in df.columns
     assert "description" in df.columns
     assert "long_description" in df.columns
     assert "start_date" in df.columns
     logger.info("Renommage des colonnes OK")
-
 
 # ---------------- TEST DATES ---------------- #
 def test_date_conversion(sample_raw_df):
@@ -41,37 +60,29 @@ def test_date_conversion(sample_raw_df):
     assert isinstance(df["firstdate_begin"].iloc[0], pd.Timestamp)
     logger.info("Conversion des dates OK: %s", df["firstdate_begin"].iloc[0])
 
-
 def test_filter_last_year(sample_raw_df):
     logger.info("Test de filtrage des événements de l'année dernière démarré")
     df = sample_raw_df.copy()
     df["firstdate_begin"] = pd.to_datetime(df["firstdate_begin"], utc=True)
-
     one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
     filtered = df[df["firstdate_begin"] >= one_year_ago]
-
     logger.info("Nombre d'événements filtrés: %d", len(filtered))
     assert len(filtered) == 1
     assert filtered.iloc[0]["uid"] == "EV1"
-
 
 # ---------------- TEST BUILD DATES ---------------- #
 def test_dates_text(sample_raw_df):
     logger.info("Test de génération des textes de dates démarré")
     df = sample_raw_df.copy()
-
     df["firstdate_begin"] = pd.to_datetime(df["firstdate_begin"])
     df["firstdate_end"] = pd.to_datetime(df["firstdate_end"])
     df["lastdate_begin"] = pd.to_datetime(df["lastdate_begin"])
     df["lastdate_end"] = pd.to_datetime(df["lastdate_end"])
-
     text = prep.build_dates(df.iloc[0])
     logger.info("Texte dates généré: %s", text)
-
     assert "Première date" in text
     assert "Dernière date" in text
     assert "Fin première période" in text
-
 
 # ---------------- TEST COORDONNEES ---------------- #
 def test_coordinate_split(sample_raw_df):
@@ -79,26 +90,21 @@ def test_coordinate_split(sample_raw_df):
     df = sample_raw_df.copy()
     lat, lon = prep.split_coords(df["location_coordinates"].iloc[0])
     logger.info("Coordonnées extraites: lat=%s, lon=%s", lat, lon)
-
     assert lat == 45.7500
     assert lon == 4.8500
 
-
 # ---------------- TEST OCR MOCK ---------------- #
-@patch("src.preprocessing.easyocr.Reader")
-@patch("src.preprocessing.requests.get")
-def test_ocr_mock(mock_requests, mock_reader, sample_raw_df):
+def test_ocr_mock(sample_raw_df):
     logger.info("Test OCR démarré (mock)")
     df = sample_raw_df.copy()
     
-    mock_requests.return_value.content = b"fakeimg"
-    mock_reader.return_value.readtext.return_value = ["Texte OCR"]
+    class MockReader:
+        def readtext(self, img, detail=0):
+            return ["Texte OCR"]
 
-    text = prep.ocr_image(df["image"].iloc[0])
+    text = prep.ocr_image(df["image"].iloc[0], reader_instance=MockReader())
     logger.info("Résultat OCR mock: %s", text)
-
     assert text == "Texte OCR"
-
 
 # ---------------- TEST VECTORIZATION TEXT ---------------- #
 def test_vectorisation_field(sample_raw_df):
